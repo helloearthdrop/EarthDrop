@@ -112,10 +112,15 @@ export default function TransferPage() {
   const handleCreateRoom = async () => {
     try {
       const res = await fetch(`${getApiUrl()}/transfer/rooms`, { method: "POST" });
+      if (!res.ok) {
+        alert(`Server error: Could not create room. Ensure backend is running. (Status ${res.status})`);
+        return;
+      }
       const data = await res.json();
       connect(data.room_code, true);
     } catch (e) {
       console.error(e);
+      alert("Network error: Could not connect to the backend server. Please check your Render URL.");
     }
   };
 
