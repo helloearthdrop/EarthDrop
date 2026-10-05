@@ -2,6 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.api_router import api_router
+from app.database.session import engine, Base
+# Import models so Base metadata is populated
+from app.models.transfer import TransferRoom
+
+# Auto-create tables (SQLite)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
