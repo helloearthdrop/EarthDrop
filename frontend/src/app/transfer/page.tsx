@@ -523,9 +523,12 @@ export default function TransferPage() {
                   <X className="w-10 h-10 text-red-500" />
                 </div>
                 <h2 className="text-2xl font-semibold mb-2">Connection Error</h2>
-                <p className="text-slate-500 mb-8 max-w-sm text-center">
+                <p className="text-slate-500 mb-4 max-w-sm text-center">
                   Could not establish a connection. Ensure your NEXT_PUBLIC_WS_URL starts with &quot;wss://&quot;.
                 </p>
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-lg mb-8 text-xs font-mono text-slate-500 max-w-sm text-center break-all">
+                  Attempted URL: {process.env.NEXT_PUBLIC_WS_URL || 'Not Set'}
+                </div>
                 <button 
                   onClick={disconnect}
                   className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-medium transition-colors"

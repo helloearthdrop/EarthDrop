@@ -8,7 +8,7 @@ class ConnectionManager:
         self.active_connections: Dict[str, Dict[str, WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, room_code: str, client_id: str) -> bool:
-        if room_code in self.active_connections and len(self.active_connections[room_code]) >= 2:
+        if room_code in self.active_connections and len(self.active_connections[room_code]) >= 5:
             await websocket.close(code=4000, reason="Room is full")
             return False
 
