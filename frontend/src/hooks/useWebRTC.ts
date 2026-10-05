@@ -40,6 +40,13 @@ export function useWebRTC() {
     });
     pcRef.current = pc;
 
+    // Keepalive to prevent Render from dropping connection after 60s
+    const pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 30000);
+
     if (isSender) {
       const dc = pc.createDataChannel('fileTransfer');
       setupDataChannel(dc);
@@ -120,6 +127,7 @@ export function useWebRTC() {
 
     return () => {
       isActive = false;
+      clearInterval(pingInterval);
       ws.close();
       pc.close();
     };
