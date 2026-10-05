@@ -524,7 +524,7 @@ export default function TransferPage() {
                 </div>
                 <h2 className="text-2xl font-semibold mb-2">Connection Error</h2>
                 <p className="text-slate-500 mb-8 max-w-sm text-center">
-                  Could not establish a connection. Ensure your NEXT_PUBLIC_WS_URL starts with "wss://".
+                  Could not establish a connection. Ensure your NEXT_PUBLIC_WS_URL starts with &quot;wss://&quot;.
                 </p>
                 <button 
                   onClick={disconnect}
