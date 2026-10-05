@@ -511,6 +511,30 @@ export default function TransferPage() {
               </motion.div>
             )}
 
+            {/* STATE: ERROR */}
+            {status === 'error' && (
+              <motion.div 
+                key="error"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex-1 flex flex-col items-center justify-center"
+              >
+                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
+                  <X className="w-10 h-10 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-semibold mb-2">Connection Error</h2>
+                <p className="text-slate-500 mb-8 max-w-sm text-center">
+                  Could not establish a connection. Ensure your NEXT_PUBLIC_WS_URL starts with "wss://".
+                </p>
+                <button 
+                  onClick={disconnect}
+                  className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-medium transition-colors"
+                >
+                  Go Back
+                </button>
+              </motion.div>
+            )}
+
           </AnimatePresence>
         </div>
       </div>
