@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useTransferStore } from "@/store/useTransferStore";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, X, CheckCircle, ArrowRight, DownloadCloud, Link as LinkIcon, QrCode, Clock } from "lucide-react";
+import { UploadCloud, X, CheckCircle, ArrowRight, DownloadCloud, Link as LinkIcon, QrCode, Clock, Star } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 
 const formatBytes = (bytes: number, decimals = 2) => {
@@ -44,6 +44,61 @@ export default function TransferPage() {
   const [creationTimeout, setCreationTimeout] = useState(30);
   const [errorMsg, setErrorMsg] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
+  const [hasRated, setHasRated] = useState(false);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('earthdrop_rated');
+      if (saved) setHasRated(true);
+    }
+  }, []);
+
+  const handleRate = (stars: number) => {
+    setRatingSubmitted(stars);
+    if (stars === 5) {
+      setHasRated(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('earthdrop_rated', 'true');
+      }
+    }
+  };
+
+  const submitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const formspreeUrl = process.env.NEXT_PUBLIC_FORMSPREE_URL;
+    if (!formspreeUrl) {
+      alert("Feedback submitted! (Admin: Please set NEXT_PUBLIC_FORMSPREE_URL in Vercel to actually receive these emails).");
+      setHasRated(true);
+      if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    try {
+      await fetch(formspreeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating: `${ratingSubmitted} Stars`,
+          feedback: feedbackText,
+          source: 'EarthDrop Web App'
+        })
+      });
+      setHasRated(true);
+      if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
+    } catch (err) {
+      alert("Something went wrong, but thank you for the feedback!");
+      setHasRated(true);
+      if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
+    }
+    setIsSubmittingFeedback(false);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined' && status === 'idle') {
@@ -497,11 +552,65 @@ export default function TransferPage() {
                 animate={{ opacity: 1 }}
                 className="flex-1 flex flex-col items-center justify-center"
               >
-                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6">
-                  <X className="w-10 h-10 text-slate-500" />
+                <div className="w-20 h-20 bg-green-500/10 dark:bg-green-500/20 rounded-2xl flex items-center justify-center mb-6">
+                  <CheckCircle className="w-10 h-10 text-green-500" />
                 </div>
-                <h2 className="text-2xl font-semibold mb-2">Session Ended</h2>
-                <p className="text-slate-500 mb-8">The peer has disconnected from the room.</p>
+                <h2 className="text-2xl font-semibold mb-2">Transfer Complete</h2>
+                <p className="text-slate-500 mb-8">The session has ended successfully.</p>
+                
+                {/* Rating UI */}
+                {!hasRated ? (
+                  <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm mb-8 text-center transition-all">
+                    {ratingSubmitted === 0 ? (
+                      <>
+                        <h3 className="font-medium mb-4">How was your experience?</h3>
+                        <div className="flex items-center justify-center gap-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onMouseEnter={() => setRatingHover(star)}
+                              onMouseLeave={() => setRatingHover(0)}
+                              onClick={() => handleRate(star)}
+                              className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
+                            >
+                              <Star 
+                                className={`w-8 h-8 transition-colors ${
+                                  star <= (ratingHover || ratingSubmitted)
+                                    ? 'fill-amber-400 text-amber-400' 
+                                    : 'text-slate-300 dark:text-slate-600'
+                                }`} 
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : ratingSubmitted === 5 ? (
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                        <h3 className="font-bold text-lg text-green-600 dark:text-green-400 mb-2">Awesome! 🎉</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">If you loved it, please share EarthDrop with a friend!</p>
+                      </motion.div>
+                    ) : (
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                        <h3 className="font-bold text-lg mb-2">Thanks for the feedback!</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">What can we improve?</p>
+                        <form onSubmit={submitFeedback} className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={feedbackText}
+                            onChange={(e) => setFeedbackText(e.target.value)}
+                            placeholder="Tell us here..." 
+                            className="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" 
+                            required 
+                          />
+                          <button type="submit" disabled={isSubmittingFeedback} className="bg-primary hover:bg-primary-hover disabled:opacity-50 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                            {isSubmittingFeedback ? '...' : 'Send'}
+                          </button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </div>
+                ) : null}
+
                 <button 
                   onClick={disconnect}
                   className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium transition-colors"
