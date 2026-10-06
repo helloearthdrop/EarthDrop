@@ -26,9 +26,29 @@ export default function Home() {
   const LeftIcon = devicePairs[pairIndex].left;
   const RightIcon = devicePairs[pairIndex].right;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'EarthDrop',
+    url: 'https://www.earthdrop.in',
+    description: 'Secure, unlimited peer-to-peer file transfer directly in your web browser.',
+    applicationCategory: 'UtilityApplication',
+    operatingSystem: 'Any',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+
   return (
-    <div className="min-h-screen flex flex-col selection:bg-primary/30">
-      {/* Navigation */}
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="min-h-screen flex flex-col selection:bg-primary/30">
+        {/* Navigation */}
       <header className="fixed top-0 w-full z-50 glass">
         <div className="w-full px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center shrink-0">
@@ -429,5 +449,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

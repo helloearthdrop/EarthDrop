@@ -20,6 +20,25 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "EarthDrop | Secure P2P File Transfer",
   description: "Move files between devices instantly using just your web browser. No limits, no tracking, completely free.",
+  keywords: ["file transfer", "p2p", "peer-to-peer", "share files", "secure transfer", "web rtc", "large file transfer", "no size limit", "send files free"],
+  authors: [{ name: "EarthDrop" }],
+  metadataBase: new URL('https://www.earthdrop.in'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "EarthDrop | Secure P2P File Transfer",
+    description: "Move files between devices instantly using just your web browser. No limits, no tracking, completely free.",
+    url: "https://www.earthdrop.in",
+    siteName: "EarthDrop",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EarthDrop | Secure P2P File Transfer",
+    description: "Move files between devices instantly using just your web browser. No limits, no tracking, completely free.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
