@@ -59,9 +59,35 @@ export default function TransferPage() {
     }
   }, []);
 
-  const handleRate = (stars: number) => {
+  const sendToDiscord = async (stars: number, text: string = "") => {
+    const discordUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
+    if (!discordUrl) return false;
+    try {
+      const payload = {
+        username: "EarthDrop Feedback Bot",
+        avatar_url: "https://www.earthdrop.in/icon-180x180.png",
+        embeds: [{
+          title: `New Rating: ${stars} Stars ${stars === 5 ? '⭐' : '⚠️'}`,
+          description: text || "*No written feedback provided.*",
+          color: stars === 5 ? 3066993 : 15158332,
+          timestamp: new Date().toISOString()
+        }]
+      };
+      await fetch(discordUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleRate = async (stars: number) => {
     setRatingSubmitted(stars);
     if (stars === 5) {
+      await sendToDiscord(5, "Loved it! (5 Stars)");
       setHasRated(true);
       if (typeof window !== 'undefined') {
         localStorage.setItem('earthdrop_rated', 'true');
@@ -72,8 +98,7 @@ export default function TransferPage() {
   const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const discordUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
-    if (!discordUrl) {
+    if (!process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL) {
       setFeedbackSent(true);
       setTimeout(() => setHasRated(true), 3000);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
@@ -81,30 +106,13 @@ export default function TransferPage() {
     }
 
     setIsSubmittingFeedback(true);
-    try {
-      const payload = {
-        username: "EarthDrop Feedback Bot",
-        avatar_url: "https://www.earthdrop.in/icon-180x180.png",
-        embeds: [
-          {
-            title: `New Rating: ${ratingSubmitted} Stars ${ratingSubmitted === 5 ? '⭐' : '⚠️'}`,
-            description: feedbackText || "*No written feedback provided.*",
-            color: ratingSubmitted === 5 ? 3066993 : 15158332,
-            timestamp: new Date().toISOString()
-          }
-        ]
-      };
-
-      await fetch(discordUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
+    const success = await sendToDiscord(ratingSubmitted, feedbackText);
+    
+    if (success) {
       setFeedbackSent(true);
       setTimeout(() => setHasRated(true), 3000);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
-    } catch (err) {
+    } else {
       alert("Something went wrong, but thank you for the feedback!");
       setHasRated(true);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
