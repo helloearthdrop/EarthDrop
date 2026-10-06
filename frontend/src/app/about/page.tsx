@@ -54,7 +54,7 @@ export default function AboutPage() {
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 mt-12">
               <h3 className="text-xl font-bold text-primary mb-2">How is it free?</h3>
               <p className="text-sm mb-4">
-                EarthDrop is able to remain free and unlimited because we don't pay for expensive cloud storage or bandwidth to host your files. The actual transfer happens directly between your device and the receiver's device over WebRTC. Our servers simply facilitate the initial handshake. We cover our minimal server costs through non-intrusive advertising.
+                EarthDrop is able to remain free and unlimited because we don&apos;t pay for expensive cloud storage or bandwidth to host your files. The actual transfer happens directly between your device and the receiver&apos;s device over WebRTC. Our servers simply facilitate the initial handshake. We cover our minimal server costs through non-intrusive advertising.
               </p>
             </div>
             
