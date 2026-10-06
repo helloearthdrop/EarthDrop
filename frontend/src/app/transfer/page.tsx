@@ -71,9 +71,9 @@ export default function TransferPage() {
   const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const formspreeUrl = process.env.NEXT_PUBLIC_FORMSPREE_URL;
-    if (!formspreeUrl) {
-      alert("Feedback submitted! (Admin: Please set NEXT_PUBLIC_FORMSPREE_URL in Vercel to actually receive these emails).");
+    const discordUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
+    if (!discordUrl) {
+      alert("Feedback submitted! (Admin: Please set NEXT_PUBLIC_DISCORD_WEBHOOK_URL in Vercel to receive this in Discord).");
       setHasRated(true);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
       return;
@@ -81,15 +81,25 @@ export default function TransferPage() {
 
     setIsSubmittingFeedback(true);
     try {
-      await fetch(formspreeUrl, {
+      const payload = {
+        username: "EarthDrop Feedback Bot",
+        avatar_url: "https://www.earthdrop.in/icon-180x180.png",
+        embeds: [
+          {
+            title: `New Rating: ${ratingSubmitted} Stars ${ratingSubmitted === 5 ? '⭐' : '⚠️'}`,
+            description: feedbackText || "*No written feedback provided.*",
+            color: ratingSubmitted === 5 ? 3066993 : 15158332, // Green for 5, Red for others
+            timestamp: new Date().toISOString()
+          }
+        ]
+      };
+
+      await fetch(discordUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rating: `${ratingSubmitted} Stars`,
-          feedback: feedbackText,
-          source: 'EarthDrop Web App'
-        })
+        body: JSON.stringify(payload)
       });
+      
       setHasRated(true);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
     } catch (err) {
