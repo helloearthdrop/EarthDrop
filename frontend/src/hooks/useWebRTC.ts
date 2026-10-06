@@ -228,6 +228,9 @@ export function useWebRTC() {
   
   const disconnect = useCallback(() => {
     useTransferStore.getState().reset();
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/transfer');
+    }
   }, []);
 
   return { connect, sendFile, disconnect };

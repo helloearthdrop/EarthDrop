@@ -50,6 +50,7 @@ export default function TransferPage() {
   const [ratingSubmitted, setRatingSubmitted] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -73,8 +74,8 @@ export default function TransferPage() {
     
     const discordUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
     if (!discordUrl) {
-      alert("Feedback submitted! (Admin: Please set NEXT_PUBLIC_DISCORD_WEBHOOK_URL in Vercel to receive this in Discord).");
-      setHasRated(true);
+      setFeedbackSent(true);
+      setTimeout(() => setHasRated(true), 3000);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
       return;
     }
@@ -88,7 +89,7 @@ export default function TransferPage() {
           {
             title: `New Rating: ${ratingSubmitted} Stars ${ratingSubmitted === 5 ? '⭐' : '⚠️'}`,
             description: feedbackText || "*No written feedback provided.*",
-            color: ratingSubmitted === 5 ? 3066993 : 15158332, // Green for 5, Red for others
+            color: ratingSubmitted === 5 ? 3066993 : 15158332,
             timestamp: new Date().toISOString()
           }
         ]
@@ -100,7 +101,8 @@ export default function TransferPage() {
         body: JSON.stringify(payload)
       });
       
-      setHasRated(true);
+      setFeedbackSent(true);
+      setTimeout(() => setHasRated(true), 3000);
       if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
     } catch (err) {
       alert("Something went wrong, but thank you for the feedback!");
@@ -598,6 +600,14 @@ export default function TransferPage() {
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                         <h3 className="font-bold text-lg text-green-600 dark:text-green-400 mb-2">Awesome! 🎉</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400">If you loved it, please share EarthDrop with a friend!</p>
+                      </motion.div>
+                    ) : feedbackSent ? (
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                        <div className="w-12 h-12 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <CheckCircle className="w-6 h-6 text-green-500" />
+                        </div>
+                        <h3 className="font-bold text-lg text-green-600 dark:text-green-400 mb-2">Sent successfully!</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Thank you for helping us improve EarthDrop.</p>
                       </motion.div>
                     ) : (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
