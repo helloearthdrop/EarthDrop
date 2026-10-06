@@ -59,35 +59,60 @@ export default function TransferPage() {
     }
   }, []);
 
-  const sendToDiscord = async (stars: number, text: string = "") => {
+  const sendFeedbackData = async (stars: number, text: string = "") => {
+    let success = false;
+    
+    // 1. Send to Discord (if configured)
     const discordUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
-    if (!discordUrl) return false;
-    try {
-      const payload = {
-        username: "EarthDrop Feedback Bot",
-        avatar_url: "https://www.earthdrop.in/icon-180x180.png",
-        embeds: [{
-          title: `New Rating: ${stars} Stars ${stars === 5 ? '⭐' : '⚠️'}`,
-          description: text || "*No written feedback provided.*",
-          color: stars === 5 ? 3066993 : 15158332,
-          timestamp: new Date().toISOString()
-        }]
-      };
-      await fetch(discordUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return true;
-    } catch (e) {
-      return false;
+    if (discordUrl) {
+      try {
+        const payload = {
+          username: "EarthDrop Feedback Bot",
+          avatar_url: "https://www.earthdrop.in/icon-180x180.png",
+          embeds: [{
+            title: `New Rating: ${stars} Stars ${stars === 5 ? '⭐' : '⚠️'}`,
+            description: text || "*No written feedback provided.*",
+            color: stars === 5 ? 3066993 : 15158332,
+            timestamp: new Date().toISOString()
+          }]
+        };
+        await fetch(discordUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        success = true;
+      } catch (e) {
+        console.error("Discord webhook failed", e);
+      }
     }
+
+    // 2. Send to Formspree Email (if configured)
+    const formspreeUrl = process.env.NEXT_PUBLIC_FORMSPREE_URL;
+    if (formspreeUrl) {
+      try {
+        await fetch(formspreeUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: `${stars} Stars`,
+            feedback: text || "No written feedback provided.",
+            source: 'EarthDrop Web App'
+          })
+        });
+        success = true;
+      } catch (e) {
+        console.error("Formspree webhook failed", e);
+      }
+    }
+
+    return success || (!discordUrl && !formspreeUrl); // Return true if no endpoints configured so UI still advances
   };
 
   const handleRate = async (stars: number) => {
     setRatingSubmitted(stars);
     if (stars === 5) {
-      await sendToDiscord(5, "Loved it! (5 Stars)");
+      await sendFeedbackData(5, "Loved it! (5 Stars)");
       setHasRated(true);
       if (typeof window !== 'undefined') {
         localStorage.setItem('earthdrop_rated', 'true');
@@ -97,16 +122,9 @@ export default function TransferPage() {
 
   const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL) {
-      setFeedbackSent(true);
-      setTimeout(() => setHasRated(true), 3000);
-      if (typeof window !== 'undefined') localStorage.setItem('earthdrop_rated', 'true');
-      return;
-    }
-
     setIsSubmittingFeedback(true);
-    const success = await sendToDiscord(ratingSubmitted, feedbackText);
+    
+    const success = await sendFeedbackData(ratingSubmitted, feedbackText);
     
     if (success) {
       setFeedbackSent(true);
