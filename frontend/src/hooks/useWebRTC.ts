@@ -40,6 +40,18 @@ export function useWebRTC() {
     });
     pcRef.current = pc;
 
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+        setStatus('disconnected');
+      }
+    };
+    
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+        setStatus('disconnected');
+      }
+    };
+
     // Keepalive to prevent Render from dropping connection after 60s
     const pingInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {

@@ -202,6 +202,13 @@ export default function TransferPage() {
     };
   }, [isSender, status, disconnect]);
 
+  const handleDisconnect = () => {
+    setJoinCode("");
+    setHasRated(false);
+    setRatingSubmitted(0);
+    disconnect();
+  };
+
   const handleCreateRoom = async () => {
     try {
       const res = await fetch(`${getApiUrl()}/transfer/rooms`, { method: "POST" });
@@ -313,9 +320,9 @@ export default function TransferPage() {
           <Link href="/" className="flex items-center cursor-pointer hover:opacity-80 transition-opacity shrink-0 -ml-4">
             <Image src="/logo.png" alt="EarthDrop Logo" width={180} height={52} className="object-contain object-left w-[180px]" priority />
           </Link>
-          {roomCode && (
+          {roomCode && status !== 'disconnected' && status !== 'idle' && (
             <button 
-              onClick={disconnect} 
+              onClick={handleDisconnect} 
               className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-xl transition-all flex items-center gap-1 sm:gap-2 border border-red-100 dark:border-red-500/20 shadow-sm shrink-0"
             >
               <X className="w-4 h-4 hidden sm:block" /> 
@@ -664,7 +671,7 @@ export default function TransferPage() {
                 ) : null}
 
                 <button 
-                  onClick={disconnect}
+                  onClick={handleDisconnect}
                   className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium transition-colors"
                 >
                   Start New Transfer
@@ -691,7 +698,7 @@ export default function TransferPage() {
                   Attempted URL: {process.env.NEXT_PUBLIC_WS_URL || 'Not Set'}
                 </div>
                 <button 
-                  onClick={disconnect}
+                  onClick={handleDisconnect}
                   className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-medium transition-colors"
                 >
                   Go Back
