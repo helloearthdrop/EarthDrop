@@ -177,11 +177,11 @@ export default function TransferPage() {
     };
   }, [status, disconnect]);
 
-  // Automatic 30-second expiry if no one joins
+  // Automatic 60-second expiry if no one joins
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     if (isSender && status === 'connecting') {
-      setCreationTimeout(30);
+      setCreationTimeout(60);
       intervalId = setInterval(() => {
         setCreationTimeout((prev) => {
           if (prev <= 1) {

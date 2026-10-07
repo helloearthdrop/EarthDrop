@@ -19,7 +19,7 @@ def create_room(db: Session = Depends(get_db)):
     code = generate_room_code()
     # In a real app, you'd ensure it's unique in the DB
     
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(timezone.utc) + timedelta(minutes=1)
     new_room = TransferRoom(room_code=code, expires_at=expires)
     db.add(new_room)
     db.commit()
@@ -29,7 +29,11 @@ def create_room(db: Session = Depends(get_db)):
 
 @router.get("/rooms/{room_code}")
 def get_room(room_code: str, db: Session = Depends(get_db)):
-    room = db.query(TransferRoom).filter(TransferRoom.room_code == room_code, TransferRoom.is_active == True).first()
+    room = db.query(TransferRoom).filter(
+        TransferRoom.room_code == room_code, 
+        TransferRoom.is_active == True,
+        TransferRoom.expires_at > datetime.now(timezone.utc)
+    ).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found or expired")
     return {"room_code": room.room_code, "status": "active"}
