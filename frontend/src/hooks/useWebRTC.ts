@@ -184,46 +184,52 @@ export function useWebRTC() {
     };
   };
 
-  const sendFile = async (file: File) => {
-    const dc = dataChannelRef.current;
-    if (!dc || dc.readyState !== 'open') return;
-
-    dc.send(JSON.stringify({ type: 'file-meta', name: file.name, size: file.size }));
-
-    const chunkSize = 16384; 
-    const arrayBuffer = await file.arrayBuffer();
-    
-    let offset = 0;
-    setSendProgress(0);
-
-    const sendChunk = () => {
-      while (offset < arrayBuffer.byteLength) {
-        if (dc.bufferedAmount > dc.bufferedAmountLowThreshold) {
-          dc.onbufferedamountlow = () => {
-            dc.onbufferedamountlow = null;
-            sendChunk();
-          };
-          return;
-        }
-        const chunk = arrayBuffer.slice(offset, offset + chunkSize);
-        dc.send(chunk);
-        offset += chunk.byteLength;
-        setSendProgress(Math.round((offset / arrayBuffer.byteLength) * 100));
+  const sendFile = (file: File): Promise<void> => {
+    return new Promise(async (resolve) => {
+      const dc = dataChannelRef.current;
+      if (!dc || dc.readyState !== 'open') {
+        resolve();
+        return;
       }
+  
+      dc.send(JSON.stringify({ type: 'file-meta', name: file.name, size: file.size }));
+  
+      const chunkSize = 16384; 
+      const arrayBuffer = await file.arrayBuffer();
       
-      dc.send(JSON.stringify({ type: 'file-done', name: file.name }));
+      let offset = 0;
+      setSendProgress(0);
+  
+      const sendChunk = () => {
+        while (offset < arrayBuffer.byteLength) {
+          if (dc.bufferedAmount > dc.bufferedAmountLowThreshold) {
+            dc.onbufferedamountlow = () => {
+              dc.onbufferedamountlow = null;
+              sendChunk();
+            };
+            return;
+          }
+          const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+          dc.send(chunk);
+          offset += chunk.byteLength;
+          setSendProgress(Math.round((offset / arrayBuffer.byteLength) * 100));
+        }
+        
+        dc.send(JSON.stringify({ type: 'file-done', name: file.name }));
+        
+        useTransferStore.getState().addHistoryItem({
+          name: file.name,
+          size: file.size,
+          type: 'sent'
+        });
+  
+        setTimeout(() => setSendProgress(0), 3000); // Clear after 3s
+        resolve();
+      };
       
-      useTransferStore.getState().addHistoryItem({
-        name: file.name,
-        size: file.size,
-        type: 'sent'
-      });
-
-      setTimeout(() => setSendProgress(0), 3000); // Clear after 3s
-    };
-    
-    dc.bufferedAmountLowThreshold = 65535;
-    sendChunk();
+      dc.bufferedAmountLowThreshold = 65535;
+      sendChunk();
+    });
   };
   
   const disconnect = useCallback(() => {

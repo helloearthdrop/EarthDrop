@@ -271,17 +271,23 @@ export default function TransferPage() {
 
   const MAX_FILE_SIZE_BYTES = 1.5 * 1024 * 1024 * 1024; // 1.5 GB limit to prevent RAM crashes
 
-  const validateAndSendFile = useCallback((files: File[]) => {
+  const validateAndSendFile = useCallback(async (files: File[]) => {
     if (files.length === 0) return;
-    const file = files[0];
     
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      alert(`The file "${file.name}" is too large!\n\nCurrently, EarthDrop limits transfers to 1.5 GB to prevent your browser from running out of memory and crashing.\n\nUnlimited file streaming is coming in a future update!`);
-      return;
+    const validFiles = files.filter(f => f.size <= MAX_FILE_SIZE_BYTES);
+    if (validFiles.length < files.length) {
+      alert(`One or more files were skipped because they exceed the 1.5 GB limit.\n\nUnlimited file streaming is coming in a future update!`);
     }
     
-    addFiles(files);
-    sendFile(file);
+    if (validFiles.length === 0) return;
+
+    addFiles(validFiles);
+    
+    for (const file of validFiles) {
+      await sendFile(file);
+      // Add a tiny delay between files to ensure the receiver processes the file-done message
+      await new Promise(r => setTimeout(r, 100));
+    }
   }, [addFiles, sendFile]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
