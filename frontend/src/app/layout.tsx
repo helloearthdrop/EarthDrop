@@ -1,3 +1,4 @@
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -58,10 +59,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3444542685708016" crossOrigin="anonymous"></script>
+        <Script 
+          id="adsense"
+          strategy="afterInteractive" 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3444542685708016" 
+          crossOrigin="anonymous" 
+        />
         {/* Google Analytics 4 */}
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-WE7CSDVDGV'}`} />
-        <script
+        <Script 
+          id="ga-src"
+          strategy="afterInteractive" 
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-WE7CSDVDGV'}`} 
+        />
+        <Script
+          id="ga-inline"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -79,7 +91,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
-        <script
+        <Script
+          id="service-worker-registration"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
