@@ -3,7 +3,7 @@ import { useTransferStore } from '@/store/useTransferStore';
 
 const getWsUrl = () => {
   if (process.env.NEXT_PUBLIC_WS_URL) {
-    return process.env.NEXT_PUBLIC_WS_URL;
+    return process.env.NEXT_PUBLIC_WS_URL.replace(/\\/+$/, "");
   }
   if (typeof window !== 'undefined') {
     return `ws://${window.location.hostname}:8000/api/v1/ws`;
