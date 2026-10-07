@@ -6,9 +6,10 @@ const getWsUrl = () => {
     return process.env.NEXT_PUBLIC_WS_URL.replace(/\/+$/, "");
   }
   if (typeof window !== 'undefined') {
-    return `ws://${window.location.hostname}:8000/api/v1/ws`;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}/api/v1/ws`;
   }
-  return 'ws://localhost:8000/api/v1/ws';
+  return 'ws://localhost:3000/api/v1/ws';
 };
 
 export function useWebRTC() {
