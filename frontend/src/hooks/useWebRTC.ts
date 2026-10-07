@@ -109,7 +109,7 @@ export function useWebRTC() {
     };
 
     ws.onerror = () => {
-      if (isActive) setStatus('error');
+      if (isActive && useTransferStore.getState().status !== 'connected') setStatus('error');
     };
     ws.onclose = (event) => {
        if (!isActive) return;
@@ -120,7 +120,7 @@ export function useWebRTC() {
          return;
        }
        const currentStatus = useTransferStore.getState().status;
-       if (currentStatus !== 'disconnected' && currentStatus !== 'idle') {
+       if (currentStatus !== 'disconnected' && currentStatus !== 'idle' && currentStatus !== 'connected') {
          setStatus('error');
        }
     };
