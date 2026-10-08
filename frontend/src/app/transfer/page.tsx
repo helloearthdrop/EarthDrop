@@ -201,8 +201,9 @@ export default function TransferPage() {
 
   const handleDisconnect = () => {
     setJoinCode("");
-    setHasRated(false);
     setRatingSubmitted(0);
+    setFeedbackSent(false);
+    setFeedbackText("");
     disconnect();
   };
 
