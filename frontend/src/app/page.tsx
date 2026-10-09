@@ -105,7 +105,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-4 sm:mt-6 text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl"
             >
-              Direct peer-to-peer file transfers using your browser. No installation, no size limits, securely encrypted end-to-end.
+              A browser-based peer-to-peer web utility. No installation, plugins, or account required. Transfer anything across devices with secure end-to-end encryption.
             </motion.p>
 
             <motion.div
@@ -428,6 +428,24 @@ export default function Home() {
                   </motion.li>
                 ))}
               </ul>
+            </div>
+          </div>
+        </section>
+      
+        {/* FAQ Section for Google Ads Compliance */}
+        <section id="faq" className="py-24 px-6 scroll-mt-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+              <p className="text-slate-500">Everything you need to know about EarthDrop.</p>
+            </div>
+            <div className="space-y-6">
+              {[ { q: "How does the peer-to-peer transfer work?", a: "EarthDrop uses WebRTC to establish a direct connection between your two devices. Once connected, files flow directly from one device to the other without ever passing through or being stored on our servers." }, { q: "Does the server store my files?", a: "No. Our servers are only used for the initial signaling process (the 6-digit code) to help your devices find each other. We never see, touch, or store your files." }, { q: "Is there a file size limit?", a: "Because transfers are peer-to-peer and don't use our server bandwidth, there are no artificial file size limits. You can transfer files as large as your browser and device memory can handle." }, { q: "Which browsers are supported?", a: "EarthDrop works on all modern browsers including Chrome, Firefox, Safari, and Edge on both desktop and mobile devices." }, { q: "Is this service free to use?", a: "Yes, EarthDrop is 100% free to use." } ].map((faq, i) => (
+                <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                  <h4 className="font-semibold text-lg mb-2">{faq.q}</h4>
+                  <p className="text-slate-500 leading-relaxed">{faq.a}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
