@@ -15,7 +15,7 @@ export default function ContactPage() {
           </Link>
         </div>
       </header>
-      <div className="flex-1">
+      <div className="flex-1 pt-28 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6">
 
 
       {/* Main Content Area */}
