@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import Link from 'next/link';
 import { ArrowLeft, Shield, Zap, Globe, Lock } from 'lucide-react';
 
@@ -8,7 +9,7 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 selection:bg-primary/30">
+    <div className="min-h-[100dvh] flex flex-col bg-slate-50 dark:bg-slate-900 selection:bg-primary/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <Link 
           href="/" 
@@ -17,6 +18,7 @@ export default function AboutPage() {
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Home
         </Link>
+      <div className="flex-1">
         
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-12 shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-700/50">
           <h1 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-6">
@@ -69,6 +71,8 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
+import Footer from "@/components/Footer";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export default function ContactPage() {
   return (
@@ -14,6 +15,8 @@ export default function ContactPage() {
           </Link>
         </div>
       </header>
+      <div className="flex-1">
+
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-4 text-center">
@@ -34,6 +37,8 @@ export default function ContactPage() {
           hello.earthdrop@gmail.com
         </a>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

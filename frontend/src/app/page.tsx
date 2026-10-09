@@ -1,4 +1,5 @@
 "use client";
+import Footer from "@/components/Footer";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -452,21 +453,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-6">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <p>© {new Date().getFullYear()} EarthDrop.</p>
-            <span className="hidden sm:inline">•</span>
-            <p>Dhyey Raja</p>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/about" className="hover:text-primary transition-colors">About</Link>
-            <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
-            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
     </>
   );

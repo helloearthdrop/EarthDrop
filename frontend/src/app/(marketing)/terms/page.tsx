@@ -1,10 +1,11 @@
+import Footer from "@/components/Footer";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-28 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6">
+    <div className="min-h-[100dvh] flex flex-col bg-slate-50 dark:bg-slate-950 pt-28 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6">
       {/* Fixed Navbar */}
       <header className="fixed top-0 left-0 w-full z-50 glass">
         <div className="w-full px-4 sm:px-6 h-20 flex items-center justify-between">
@@ -13,6 +14,8 @@ export default function TermsPage() {
           </Link>
         </div>
       </header>
+      <div className="flex-1">
+
 
       <div className="max-w-3xl mx-auto w-full">
         
@@ -51,6 +54,8 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }
