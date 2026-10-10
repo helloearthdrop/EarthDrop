@@ -29,7 +29,7 @@ export function useWebRTC() {
     if (!roomCode || status !== 'connecting') return;
 
     let isActive = true;
-    let pingInterval: NodeJS.Timeout;
+
 
     const ws = new WebSocket(`${getWsUrl()}/${roomCode}/${clientId}`);
     wsRef.current = ws;
