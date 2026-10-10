@@ -174,8 +174,9 @@ export function useWebRTC() {
           if (process.env.NEXT_PUBLIC_API_URL) {
             apiUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
           }
-          const blob = new Blob([JSON.stringify({ client_id: clientId })], { type: 'application/json' });
-          navigator.sendBeacon(`${apiUrl}/transfer/rooms/${roomCode}/leave`, blob);
+          navigator.sendBeacon(
+            `${apiUrl}/transfer/rooms/${roomCode}/leave/${clientId}`
+          );
         }
       };
       window.addEventListener('unload', handleUnload);
@@ -185,8 +186,12 @@ export function useWebRTC() {
         clearInterval(pingInterval);
         window.removeEventListener('unload', handleUnload);
         
-        if (useTransferStore.getState().status === 'idle' && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'explicit-leave', client_id: clientId }));
+        if (useTransferStore.getState().status === 'idle') {
+          let apiUrl = '/api/v1';
+          if (process.env.NEXT_PUBLIC_API_URL) {
+            apiUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
+          }
+          navigator.sendBeacon(`${apiUrl}/transfer/rooms/${roomCode}/leave/${clientId}`);
         }
         
         ws.close();

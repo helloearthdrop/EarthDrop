@@ -40,10 +40,7 @@ def get_room(room_code: str, db: Session = Depends(get_db)):
 from pydantic import BaseModel
 from app.websocket.manager import manager
 
-class LeaveRequest(BaseModel):
-    client_id: str
-
-@router.post("/rooms/{room_code}/leave")
-async def explicit_leave(room_code: str, req: LeaveRequest):
-    await manager.broadcast_to_room(room_code, {"type": "explicit-leave", "client_id": req.client_id})
+@router.post("/rooms/{room_code}/leave/{client_id}")
+async def explicit_leave(room_code: str, client_id: str):
+    await manager.broadcast_to_room(room_code, {"type": "explicit-leave", "client_id": client_id})
     return {"status": "ok"}
