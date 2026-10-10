@@ -17,6 +17,15 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, client_id: st
         sender_id=client_id
     )
 
+    # Tell the new user about everyone who is already in the room
+    if room_code in manager.active_connections:
+        for existing_client_id in manager.active_connections[room_code]:
+            if existing_client_id != client_id:
+                await manager.send_personal_message(
+                    {"type": "peer-joined", "client_id": existing_client_id, "sender": existing_client_id},
+                    websocket
+                )
+
     try:
         while True:
             data = await websocket.receive_text()

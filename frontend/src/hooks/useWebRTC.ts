@@ -92,6 +92,12 @@ export function useWebRTC() {
       switch (message.type) {
         case 'peer-joined':
           console.log('Peer joined:', message.client_id);
+          const currentPeerId = useTransferStore.getState().peerId;
+          if (currentPeerId && currentPeerId !== message.client_id) {
+            console.log("A new peer replaced the old one! Triggering reconnect...");
+            useTransferStore.getState().triggerReconnect();
+            break;
+          }
           setPeerId(message.client_id);
           if (isSender) {
             const offer = await pc.createOffer();
@@ -101,6 +107,12 @@ export function useWebRTC() {
           break;
         case 'offer':
           console.log('Received offer');
+          const currentPeerForOffer = useTransferStore.getState().peerId;
+          if (currentPeerForOffer && currentPeerForOffer !== target) {
+            console.log("Received offer from a new peer! Triggering reconnect...");
+            useTransferStore.getState().triggerReconnect();
+            break;
+          }
           setPeerId(target);
           await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
           const answer = await pc.createAnswer();
@@ -118,10 +130,13 @@ export function useWebRTC() {
           }
           break;
         case 'peer-left':
+          if (useTransferStore.getState().status === 'connected') {
+            console.log('Ignoring peer-left because WebRTC is connected. Relying on ICE.');
+            break;
+          }
           console.log('Peer left, waiting for reconnect...');
           setPeerId(null);
           setStatus('connecting'); // Go back to lobby to await reconnect
-          // Cleanly trigger a full WebRTC remount
           useTransferStore.getState().triggerReconnect();
           break;
       }
