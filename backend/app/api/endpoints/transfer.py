@@ -37,3 +37,13 @@ def get_room(room_code: str, db: Session = Depends(get_db)):
     if not room:
         raise HTTPException(status_code=404, detail="Room not found or expired")
     return {"room_code": room.room_code, "status": "active"}
+from pydantic import BaseModel
+from app.websocket.manager import manager
+
+class LeaveRequest(BaseModel):
+    client_id: str
+
+@router.post("/rooms/{room_code}/leave")
+async def explicit_leave(room_code: str, req: LeaveRequest):
+    await manager.broadcast_to_room(room_code, {"type": "explicit-leave", "client_id": req.client_id})
+    return {"status": "ok"}
