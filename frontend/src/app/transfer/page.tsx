@@ -37,8 +37,8 @@ export default function TransferPage() {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600);
-  const [creationTimeout, setCreationTimeout] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(3600);
+  const [creationTimeout, setCreationTimeout] = useState(60);
   const [errorMsg, setErrorMsg] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -173,13 +173,13 @@ export default function TransferPage() {
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     if (status === 'connected') {
-      setTimeLeft(600);
+      setTimeLeft(3600);
       intervalId = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(intervalId);
             disconnect();
-            alert("Session ended automatically after 10 minutes for security.");
+            alert("Session ended automatically after 60 minutes for security.");
             return 0;
           }
           return prev - 1;

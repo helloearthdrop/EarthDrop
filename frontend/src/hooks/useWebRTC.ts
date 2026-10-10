@@ -44,13 +44,17 @@ export function useWebRTC() {
 
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        setStatus('disconnected');
+        console.log('ICE failed/closed, waiting for reconnect...');
+        setStatus('connecting');
+        useTransferStore.getState().triggerReconnect();
       }
     };
     
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
-        setStatus('disconnected');
+        console.log('PC failed/closed, waiting for reconnect...');
+        setStatus('connecting');
+        useTransferStore.getState().triggerReconnect();
       }
     };
 
@@ -159,7 +163,6 @@ export function useWebRTC() {
     };
     dc.onclose = () => {
       console.log('Data channel closed');
-      setStatus('disconnected');
     };
     
     const receiveBuffer: Blob[] = [];
@@ -237,6 +240,11 @@ export function useWebRTC() {
   
       const sendChunk = async () => {
         while (offset < file.size) {
+          if (dc.readyState !== 'open') {
+            resolve();
+            return;
+          }
+
           if (dc.bufferedAmount > dc.bufferedAmountLowThreshold) {
             dc.onbufferedamountlow = () => {
               dc.onbufferedamountlow = null;
@@ -245,20 +253,35 @@ export function useWebRTC() {
             return;
           }
           
-          const slice = file.slice(offset, offset + chunkSize);
-          const chunk = await slice.arrayBuffer();
-          dc.send(chunk);
-          offset += chunk.byteLength;
-          setSendProgress(Math.round((offset / file.size) * 100));
+          try {
+            const slice = file.slice(offset, offset + chunkSize);
+            const chunk = await slice.arrayBuffer();
+            if (dc.readyState !== 'open') {
+               resolve();
+               return;
+            }
+            dc.send(chunk);
+            offset += chunk.byteLength;
+            setSendProgress(Math.round((offset / file.size) * 100));
+          } catch (error) {
+            console.error("Failed to send chunk:", error);
+            resolve();
+            return;
+          }
         }
         
-        dc.send(JSON.stringify({ type: 'file-done', name: file.name }));
-        
-        useTransferStore.getState().addHistoryItem({
-          name: file.name,
-          size: file.size,
-          type: 'sent'
-        });
+        if (dc.readyState === 'open') {
+          try {
+            dc.send(JSON.stringify({ type: 'file-done', name: file.name }));
+            useTransferStore.getState().addHistoryItem({
+              name: file.name,
+              size: file.size,
+              type: 'sent'
+            });
+          } catch (e) {
+            console.error("Failed to send done marker:", e);
+          }
+        }
   
         setTimeout(() => setSendProgress(0), 3000); // Clear after 3s
         resolve();
