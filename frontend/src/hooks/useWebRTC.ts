@@ -92,8 +92,10 @@ export function useWebRTC() {
       switch (message.type) {
         case 'explicit-leave':
           console.log('Peer explicitly left.');
-          alert("The other user has left the session.");
           useTransferStore.getState().reset();
+          try {
+            alert("The other user has left the session.");
+          } catch (e) {}
           break;
         case 'peer-joined':
           console.log('Peer joined:', message.client_id);
@@ -348,6 +350,9 @@ export function useWebRTC() {
   };
   
   const disconnect = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'explicit-leave', client_id: useTransferStore.getState().clientId }));
+    }
     useTransferStore.getState().reset();
     if (typeof window !== 'undefined') {
       window.history.replaceState(null, '', '/transfer');
