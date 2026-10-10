@@ -13,7 +13,7 @@ const getWsUrl = () => {
 };
 
 export function useWebRTC() {
-  const { roomCode, clientId, status, isSender, setStatus, setPeerId, setSendProgress, setReceiveProgress } = useTransferStore();
+  const { roomCode, clientId, status, isSender, setStatus, setPeerId, setSendProgress, setReceiveProgress, reconnectTrigger } = useTransferStore();
   
   const wsRef = useRef<WebSocket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -29,6 +29,10 @@ export function useWebRTC() {
     if (!roomCode || status !== 'connecting') return;
 
     let isActive = true;
+    let pingInterval: NodeJS.Timeout;
+
+    const ws = new WebSocket(`${getWsUrl()}/${roomCode}/${clientId}`);
+    wsRef.current = ws;
 
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -60,101 +64,93 @@ export function useWebRTC() {
       setupDataChannel(event.channel);
       dataChannelRef.current = event.channel;
     };
-    
-    let pingInterval: NodeJS.Timeout;
 
-    const connectWs = () => {
-      if (!isActive) return;
-      const ws = new WebSocket(`${getWsUrl()}/${roomCode}/${clientId}`);
-      wsRef.current = ws;
+    pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 30000);
 
-      clearInterval(pingInterval);
-      pingInterval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'ping' }));
-        }
-      }, 30000);
-
-      pc.onicecandidate = (event) => {
-        if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'ice-candidate',
-            candidate: event.candidate
-          }));
-        }
-      };
-
-      ws.onmessage = async (event) => {
-        if (!isActive) return;
-        const message = JSON.parse(event.data);
-        const target = message.sender;
-
-        switch (message.type) {
-          case 'peer-joined':
-            console.log('Peer joined:', message.client_id);
-            setPeerId(message.client_id);
-            if (isSender) {
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              ws.send(JSON.stringify({ type: 'offer', offer, target: message.client_id }));
-            }
-            break;
-          case 'offer':
-            console.log('Received offer');
-            setPeerId(target);
-            await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            ws.send(JSON.stringify({ type: 'answer', answer, target }));
-            break;
-          case 'answer':
-            console.log('Received answer');
-            await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
-            break;
-          case 'ice-candidate':
-            console.log('Received ice candidate');
-            if (message.candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
-            }
-            break;
-          case 'peer-left':
-            console.log('Peer left, waiting for reconnect...');
-            setPeerId(null);
-            setStatus('connecting'); // Go back to lobby to await reconnect
-            setTimeout(connectWs, 500); // Restart RTCPeerConnection cleanly
-            break;
-        }
-      };
-
-      ws.onerror = () => {};
-      ws.onclose = (event) => {
-         if (!isActive) return;
-         if (event.code === 4000) {
-           setStatus('idle');
-           useTransferStore.getState().setRoomCode(null);
-           alert("Cannot join: This room is already full (limited to 2 devices).");
-           return;
-         }
-         const currentStatus = useTransferStore.getState().status;
-         
-         if (currentStatus === 'connecting') {
-           // Reconnect silently if we drop while waiting in lobby
-           setTimeout(connectWs, 2000);
-         } else if (currentStatus !== 'disconnected' && currentStatus !== 'idle' && currentStatus !== 'connected') {
-           setStatus('error');
-         }
-      };
+    pc.onicecandidate = (event) => {
+      if (event.candidate && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'ice-candidate',
+          candidate: event.candidate
+        }));
+      }
     };
 
-    connectWs();
+    ws.onmessage = async (event) => {
+      if (!isActive) return;
+      const message = JSON.parse(event.data);
+      const target = message.sender;
+
+      switch (message.type) {
+        case 'peer-joined':
+          console.log('Peer joined:', message.client_id);
+          setPeerId(message.client_id);
+          if (isSender) {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ type: 'offer', offer, target: message.client_id }));
+          }
+          break;
+        case 'offer':
+          console.log('Received offer');
+          setPeerId(target);
+          await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          ws.send(JSON.stringify({ type: 'answer', answer, target }));
+          break;
+        case 'answer':
+          console.log('Received answer');
+          await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
+          break;
+        case 'ice-candidate':
+          console.log('Received ice candidate');
+          if (message.candidate) {
+            await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+          }
+          break;
+        case 'peer-left':
+          console.log('Peer left, waiting for reconnect...');
+          setPeerId(null);
+          setStatus('connecting'); // Go back to lobby to await reconnect
+          // Cleanly trigger a full WebRTC remount
+          useTransferStore.getState().triggerReconnect();
+          break;
+      }
+    };
+
+    ws.onerror = () => {};
+    ws.onclose = (event) => {
+       if (!isActive) return;
+       if (event.code === 4000) {
+         setStatus('idle');
+         useTransferStore.getState().setRoomCode(null);
+         alert("Cannot join: This room is already full (limited to 2 devices).");
+         return;
+       }
+       const currentStatus = useTransferStore.getState().status;
+       
+       if (currentStatus === 'connecting') {
+         // Mobile tab backgrounding drops the WebSocket. Re-trigger the hook.
+         setTimeout(() => {
+            if (isActive) useTransferStore.getState().triggerReconnect();
+         }, 2000);
+       } else if (currentStatus !== 'disconnected' && currentStatus !== 'idle' && currentStatus !== 'connected') {
+         setStatus('error');
+       }
+    };
 
     return () => {
       isActive = false;
       clearInterval(pingInterval);
-      wsRef.current?.close();
+      ws.close();
       pc.close();
     };
-  }, [roomCode, clientId, isSender, setStatus, setPeerId]);
+  }, [roomCode, clientId, isSender, setStatus, setPeerId, reconnectTrigger]);
 
   const setupDataChannel = (dc: RTCDataChannel) => {
     dc.onopen = () => {

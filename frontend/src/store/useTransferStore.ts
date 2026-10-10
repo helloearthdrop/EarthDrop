@@ -23,6 +23,7 @@ interface TransferState {
   sendProgress: number; // 0 to 100
   receiveProgress: number; // 0 to 100
   currentReceivingFile: string | null;
+  reconnectTrigger: number;
   
   setRoomCode: (code: string | null) => void;
   setStatus: (status: ConnectionStatus) => void;
@@ -32,6 +33,7 @@ interface TransferState {
   addHistoryItem: (item: Omit<TransferHistoryItem, 'id' | 'timestamp'>) => void;
   setSendProgress: (progress: number) => void;
   setReceiveProgress: (progress: number, fileName?: string | null) => void;
+  triggerReconnect: () => void;
   reset: () => void;
 }
 
@@ -48,6 +50,7 @@ export const useTransferStore = create<TransferState>((set) => ({
   sendProgress: 0,
   receiveProgress: 0,
   currentReceivingFile: null,
+  reconnectTrigger: 0,
   
   setRoomCode: (code) => set({ roomCode: code }),
   setStatus: (status) => set({ status }),
@@ -62,6 +65,7 @@ export const useTransferStore = create<TransferState>((set) => ({
     receiveProgress: progress,
     currentReceivingFile: fileName !== undefined ? fileName : state.currentReceivingFile
   })),
+  triggerReconnect: () => set((state) => ({ reconnectTrigger: state.reconnectTrigger + 1 })),
   reset: () => set({ 
     roomCode: null, 
     status: 'idle', 
