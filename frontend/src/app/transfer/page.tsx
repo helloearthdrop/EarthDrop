@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UploadCloud, X, CheckCircle, ArrowRight, DownloadCloud, Link as LinkIcon, QrCode, Clock, Star } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 
+const MAX_FILE_SIZE_BYTES = 1.5 * 1024 * 1024 * 1024;
+
 const formatBytes = (bytes: number, decimals = 2) => {
   if (!+bytes) return '0 Bytes';
   const k = 1024;
@@ -145,9 +147,7 @@ export default function TransferPage() {
           .then(res => {
             if (res.ok) connect(savedRoom, savedRole === "sender");
             else {
-              sessionStorage.removeItem("earthdrop_room");
-              sessionStorage.removeItem("earthdrop_role");
-            }
+                                }
           }).catch(() => {});
         return;
       }
@@ -214,7 +214,6 @@ export default function TransferPage() {
   }, [isSender, status, disconnect]);
 
   const handleDisconnect = () => {
-    sessionStorage.removeItem("earthdrop_room");
     sessionStorage.removeItem("earthdrop_role");
     setJoinCode("");
     setRatingSubmitted(0);
@@ -231,8 +230,6 @@ export default function TransferPage() {
         return;
       }
       const data = await res.json();
-      sessionStorage.setItem("earthdrop_room", data.room_code);
-      sessionStorage.setItem("earthdrop_role", "sender");
       connect(data.room_code, true);
     } catch (e) {
       console.error(e);
@@ -248,8 +245,6 @@ export default function TransferPage() {
         setErrorMsg("Room not found. Please check the code.");
         return;
       }
-      sessionStorage.setItem("earthdrop_room", code);
-      sessionStorage.setItem("earthdrop_role", "receiver");
       connect(code, false);
     } catch (err) { console.error(err);
       setErrorMsg("Failed to connect to server.");
@@ -294,7 +289,18 @@ export default function TransferPage() {
     }
   };
 
-  const MAX_FILE_SIZE_BYTES = 1.5 * 1024 * 1024 * 1024; // 1.5 GB limit to prevent RAM crashes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (status === "connected") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [status]);
+
+
 
   const validateAndSendFile = useCallback(async (files: File[]) => {
     if (files.length === 0) return;
