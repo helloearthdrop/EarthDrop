@@ -19,7 +19,7 @@ def create_room(db: Session = Depends(get_db)):
     code = generate_room_code()
     # In a real app, you'd ensure it's unique in the DB
     
-    expires = datetime.now(timezone.utc) + timedelta(minutes=1)
+    expires = datetime.now(timezone.utc) + timedelta(hours=24)
     new_room = TransferRoom(room_code=code, expires_at=expires)
     db.add(new_room)
     db.commit()

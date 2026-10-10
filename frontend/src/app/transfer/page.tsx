@@ -137,6 +137,20 @@ export default function TransferPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && status === 'idle') {
+      const savedRoom = sessionStorage.getItem("earthdrop_room");
+      const savedRole = sessionStorage.getItem("earthdrop_role");
+      if (savedRoom && savedRole) {
+        setJoinCode(savedRoom);
+        fetch(`${getApiUrl()}/transfer/rooms/${savedRoom}`)
+          .then(res => {
+            if (res.ok) connect(savedRoom, savedRole === "sender");
+            else {
+              sessionStorage.removeItem("earthdrop_room");
+              sessionStorage.removeItem("earthdrop_role");
+            }
+          }).catch(() => {});
+        return;
+      }
       const params = new URLSearchParams(window.location.search);
       const room = params.get('room')?.toUpperCase();
       if (room && room.length === 6) {
@@ -200,6 +214,8 @@ export default function TransferPage() {
   }, [isSender, status, disconnect]);
 
   const handleDisconnect = () => {
+    sessionStorage.removeItem("earthdrop_room");
+    sessionStorage.removeItem("earthdrop_role");
     setJoinCode("");
     setRatingSubmitted(0);
     setFeedbackSent(false);
@@ -215,6 +231,8 @@ export default function TransferPage() {
         return;
       }
       const data = await res.json();
+      sessionStorage.setItem("earthdrop_room", data.room_code);
+      sessionStorage.setItem("earthdrop_role", "sender");
       connect(data.room_code, true);
     } catch (e) {
       console.error(e);
@@ -230,6 +248,8 @@ export default function TransferPage() {
         setErrorMsg("Room not found. Please check the code.");
         return;
       }
+      sessionStorage.setItem("earthdrop_room", code);
+      sessionStorage.setItem("earthdrop_role", "receiver");
       connect(code, false);
     } catch (err) {
       setErrorMsg("Failed to connect to server.");

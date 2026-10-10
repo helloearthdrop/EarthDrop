@@ -118,9 +118,10 @@ export function useWebRTC() {
             }
             break;
           case 'peer-left':
-            console.log('Peer left');
-            setStatus('disconnected');
+            console.log('Peer left, waiting for reconnect...');
             setPeerId(null);
+            setStatus('connecting'); // Go back to lobby to await reconnect
+            setTimeout(connectWs, 500); // Restart RTCPeerConnection cleanly
             break;
         }
       };
