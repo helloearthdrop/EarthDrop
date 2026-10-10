@@ -251,7 +251,7 @@ export default function TransferPage() {
       sessionStorage.setItem("earthdrop_room", code);
       sessionStorage.setItem("earthdrop_role", "receiver");
       connect(code, false);
-    } catch (err) {
+    } catch (err) { console.error(err);
       setErrorMsg("Failed to connect to server.");
     }
   };

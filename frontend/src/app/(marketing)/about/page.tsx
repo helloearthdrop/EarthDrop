@@ -1,6 +1,6 @@
 import Footer from "@/components/Footer";
 import Link from 'next/link';
-import { ArrowLeft, Shield, Zap, Globe, Lock } from 'lucide-react';
+import { ArrowLeft, Shield, Zap } from 'lucide-react';
 
 export const metadata = {
   title: 'About | EarthDrop',

@@ -69,7 +69,7 @@ export function useWebRTC() {
       dataChannelRef.current = event.channel;
     };
 
-    pingInterval = setInterval(() => {
+    const pingInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'ping' }));
       }
@@ -154,6 +154,7 @@ export function useWebRTC() {
       ws.close();
       pc.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomCode, clientId, isSender, setStatus, setPeerId, reconnectTrigger]);
 
   const setupDataChannel = (dc: RTCDataChannel) => {

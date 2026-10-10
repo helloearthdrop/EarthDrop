@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Zap, Shield, MonitorSmartphone, Smartphone, Laptop, Download, CheckCircle2, Lock, EyeOff, FileKey, FileImage, FileVideo, FileCode2, Monitor, Tablet } from "lucide-react";
+import { ArrowRight, Zap, Shield, MonitorSmartphone, Smartphone, Laptop, Download, CheckCircle2, Lock, EyeOff, FileKey, FileImage, FileCode2, Monitor, Tablet } from "lucide-react";
 
 export default function Home() {
   const devicePairs = [
@@ -22,6 +22,7 @@ export default function Home() {
       setPairIndex((prev) => (prev + 1) % devicePairs.length);
     }, 4000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const LeftIcon = devicePairs[pairIndex].left;
