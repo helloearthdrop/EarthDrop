@@ -138,33 +138,29 @@ export default function TransferPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && status === 'idle') {
-      const savedRoom = sessionStorage.getItem("earthdrop_room");
-      const savedRole = sessionStorage.getItem("earthdrop_role");
-      if (savedRoom && savedRole) {
-        setJoinCode(savedRoom);
-        fetch(`${getApiUrl()}/transfer/rooms/${savedRoom}`)
-          .then(res => {
-            if (res.ok) connect(savedRoom, savedRole === "sender");
-            else {
-                                }
-          }).catch(() => {});
+    if (typeof window !== 'undefined') {
+      const navEntries = performance.getEntriesByType("navigation");
+      if (navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === "reload") {
+        window.location.href = "/";
         return;
       }
-      const params = new URLSearchParams(window.location.search);
-      const room = params.get('room')?.toUpperCase();
-      if (room && room.length === 6) {
-        setJoinCode(room);
-        fetch(`${getApiUrl()}/transfer/rooms/${room}`)
-          .then(res => {
-            if (res.ok) {
-              connect(room, false);
-            } else {
-              setErrorMsg("The room from the link does not exist.");
-              window.history.replaceState(null, '', '/transfer');
-            }
-          })
-          .catch(() => setErrorMsg("Could not connect to server."));
+      
+      if (status === 'idle') {
+        const params = new URLSearchParams(window.location.search);
+        const room = params.get('room')?.toUpperCase();
+        if (room && room.length === 6) {
+          setJoinCode(room);
+          fetch(`${getApiUrl()}/transfer/rooms/${room}`)
+            .then(res => {
+              if (res.ok) {
+                connect(room, false);
+              } else {
+                setErrorMsg("The room from the link does not exist.");
+                window.history.replaceState(null, '', '/transfer');
+              }
+            })
+            .catch(() => setErrorMsg("Could not connect to server."));
+        }
       }
     }
   }, [status, connect]);
