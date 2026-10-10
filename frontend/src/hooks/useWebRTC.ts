@@ -168,7 +168,16 @@ export function useWebRTC() {
        }
     };
 
+      let isUnloading = false;
+      const handleBeforeUnload = () => {
+        isUnloading = true;
+        // If the user clicks "Cancel" on the leave prompt, JS resumes and clears the flag
+        setTimeout(() => { isUnloading = false; }, 100);
+      };
+      
       const handleUnload = () => {
+        if (!isUnloading) return; // Ignore mobile file picker suspensions
+        
         if (roomCode && clientId) {
           let apiUrl = '/api/v1';
           if (process.env.NEXT_PUBLIC_API_URL) {
@@ -179,11 +188,13 @@ export function useWebRTC() {
           );
         }
       };
+      window.addEventListener('beforeunload', handleBeforeUnload);
       window.addEventListener('unload', handleUnload);
 
       return () => {
         isActive = false;
         clearInterval(pingInterval);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
         window.removeEventListener('unload', handleUnload);
         
         if (useTransferStore.getState().status === 'idle') {
