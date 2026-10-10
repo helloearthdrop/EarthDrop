@@ -166,6 +166,8 @@ export function useWebRTC() {
     };
     
     const receiveBuffer: Blob[] = [];
+    let currentChunk: ArrayBuffer[] = [];
+    let currentChunkSize = 0;
     let receivedSize = 0;
     let expectedSize = 0;
     
@@ -175,10 +177,17 @@ export function useWebRTC() {
         if (meta.type === 'file-meta') {
             console.log('Incoming file:', meta.name, meta.size);
             receiveBuffer.length = 0;
+            currentChunk = [];
+            currentChunkSize = 0;
             receivedSize = 0;
             expectedSize = meta.size;
             setReceiveProgress(0, meta.name);
         } else if (meta.type === 'file-done') {
+            if (currentChunk.length > 0) {
+              receiveBuffer.push(new Blob(currentChunk));
+              currentChunk = [];
+              currentChunkSize = 0;
+            }
             const blob = new Blob(receiveBuffer);
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -197,7 +206,16 @@ export function useWebRTC() {
             setTimeout(() => setReceiveProgress(0, null), 3000); // Clear after 3s
         }
       } else {
-        receiveBuffer.push(event.data);
+        currentChunk.push(event.data);
+        currentChunkSize += event.data.byteLength;
+        
+        // Flush to Blob every 5MB to prevent memory duplication spike at the end
+        if (currentChunkSize >= 5 * 1024 * 1024) {
+          receiveBuffer.push(new Blob(currentChunk));
+          currentChunk = [];
+          currentChunkSize = 0;
+        }
+
         receivedSize += event.data.byteLength;
         if (expectedSize > 0) {
            setReceiveProgress(Math.min(99, Math.round((receivedSize / expectedSize) * 100)));
