@@ -90,6 +90,11 @@ export function useWebRTC() {
       const target = message.sender;
 
       switch (message.type) {
+        case 'explicit-leave':
+          console.log('Peer explicitly left.');
+          alert("The other user has left the session.");
+          useTransferStore.getState().reset();
+          break;
         case 'peer-joined':
           console.log('Peer joined:', message.client_id);
           const currentPeerId = useTransferStore.getState().peerId;
@@ -163,12 +168,25 @@ export function useWebRTC() {
        }
     };
 
-    return () => {
-      isActive = false;
-      clearInterval(pingInterval);
-      ws.close();
-      pc.close();
-    };
+      const handleUnload = () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'explicit-leave' }));
+        }
+      };
+      window.addEventListener('unload', handleUnload);
+
+      return () => {
+        isActive = false;
+        clearInterval(pingInterval);
+        window.removeEventListener('unload', handleUnload);
+        
+        if (useTransferStore.getState().status === 'idle' && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'explicit-leave' }));
+        }
+        
+        ws.close();
+        pc.close();
+      };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomCode, clientId, isSender, setStatus, setPeerId, reconnectTrigger]);
 
