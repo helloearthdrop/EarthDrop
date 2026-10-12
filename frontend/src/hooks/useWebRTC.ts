@@ -95,7 +95,7 @@ export function useWebRTC() {
           useTransferStore.getState().reset();
           try {
             alert("The other user has left the session.");
-          } catch (e) {}
+          } catch {}
           break;
         case 'peer-joined':
           console.log('Peer joined:', message.client_id);
